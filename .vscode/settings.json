@@ -11,6 +11,8 @@
         "new": "cpp",
         "*.tcc": "cpp",
         "cstdint": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp"
     }
 }
