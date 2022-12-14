@@ -4,6 +4,8 @@ using namespace std;
 string encrypt(string txt) {
     string chave("criptografia");
     string encr_txt;
+
+    printf("%d", 'á');
     for (int i = 0; i < txt.length(); i++) {
         encr_txt.push_back((txt[i] + chave[i % chave.length()]) % 127);
     }
