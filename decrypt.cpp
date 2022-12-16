@@ -1,6 +1,7 @@
 #include <iostream>
 #include <locale>
 #include <string>
+#include <cmath>
 
 using namespace std;
 
@@ -9,6 +10,20 @@ const string DEFAULT_KEY = "whatever";
 
 // The polyalphabetic key to use for the polyalphabetic encryption (the first 26 hiragana characters)
 const string POLYALPHABETIC_KEY = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざし";
+
+string removeAccentuations(string str)
+{
+    locale loc("");
+    string result;
+
+    for (auto ch : str)
+    {
+        result += tolower(ch, loc);
+    }
+
+    return result;
+}
+
 
 // The function that encrypts a message using the One-Time Pad algorithm
 string encryptMessage(const string& message, const string& key = DEFAULT_KEY)
@@ -21,7 +36,8 @@ string encryptMessage(const string& message, const string& key = DEFAULT_KEY)
   for (size_t i = 0; i < message.length(); ++i)
   {
     char keyChar = key[i % key.length()];
-    encryptedMessage += message[i] ^ keyChar;
+    unsigned char messageChar = message[i];
+    encryptedMessage += (int)(fmod(message[i] ^ keyChar, 233)) + 32;
   }
 
   return encryptedMessage;
@@ -39,7 +55,8 @@ string encryptPolyalphabetically(const string& message, const string& key)
   {
     char keyChar = key[i % key.length()];
     char messageChar = message[i];
-    char encryptedChar = messageChar ^ keyChar;
+    unsigned char encryptedChar = ((messageChar ^ keyChar) % 233) + 32;
+    printf("%d\n", encryptedChar);
     encryptedMessage += encryptedChar;
   }
 
@@ -52,21 +69,18 @@ int main()
   // The message to encrypt
   string message;
   getline(cin, message);
+  message = removeAccentuations(message);
 
   // Encrypt the message using the One-Time Pad algorithm
   string encryptedMessage = encryptMessage(message);
 
   // Encrypt the message again using the polyalphabetic encryption
-  encryptedMessage = encryptPolyalphabetically(encryptedMessage, POLYALPHABETIC_KEY);
+  // encryptedMessage = encryptPolyalphabetically(encryptedMessage, POLYALPHABETIC_KEY);
 
-  size_t bufferSize = mbstowcs(nullptr, encryptedMessage.c_str(), 0) + 1;
-  wchar_t* buffer = new wchar_t[bufferSize];
-
-  // Convert the string to a wstring and store it in the buffer
-  mbstowcs(buffer, encryptedMessage.c_str(), bufferSize);
-
+  for (int i = 0; i < encryptedMessage.length(); i++)
+    printf("%d\n", encryptedMessage[i]);
   // Print the encrypted message
-  wcout << "Texto cifrado: " << buffer << endl;
+  cout << "Texto cifrado: " << encryptedMessage << endl;
 
     return 0;
 }

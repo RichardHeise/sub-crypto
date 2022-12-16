@@ -5,9 +5,8 @@ string encrypt(string txt) {
     string chave("criptografia");
     string encr_txt;
 
-    printf("%d", 'á');
     for (int i = 0; i < txt.length(); i++) {
-        encr_txt.push_back((txt[i] + chave[i % chave.length()]) % 127);
+        encr_txt.push_back(((txt[i] ^ chave[i % chave.length()]) % 95) + 32);
     }
     encr_txt.push_back('\n');
 
@@ -22,7 +21,7 @@ int main() {
     string input;
     string encrypted_text;
 
-    cin >> input;
+    getline(cin, input);
 
     encrypted_text = encrypt(input);
 
