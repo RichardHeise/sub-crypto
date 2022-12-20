@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <time.h>
 
 typedef struct {
     char mask;    /* char data will be bitwise AND with this */
@@ -88,27 +89,58 @@ uint32_t to_cp(const char chr[4])
     return codep;
 }
 
+void oneTimePad(uint32_t *charTxt, uint32_t charKey) {
+    *charTxt = (*charTxt ^ charKey);
+}
+
 int main(int argc, char* argv[]) {
     if (argc <= 1) {
         printf("Usage:\n  encrypting: %s -c\n  decrypting: %s -d\n", argv[0], argv[0]);
         return 1;
     }
 
-    char buffer[500];
-    uint32_t codepoints[500];
+    uint32_t key[8500];
+
+    unsigned char date[10];
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    sprintf(date, "%d-%d-%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+
+    unsigned char* in;
+    int x = 0;
+    for (in = date; *in != '\0'; in += utf8_len(*in)) {
+        key[x++] = to_cp(in);
+    }
+
+    unsigned char buffer[8500];
+    uint32_t codepoints[8500];
     fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), stdin);
 
     int n = 0;
-    char* in;
     for (in = buffer; *in != '\n'; in += utf8_len(*in)) {
         codepoints[n++] = to_cp(in);
     }
 
+    uint32_t aux[8500];
+    bcopy(codepoints, aux, n*4);
+
     for (int i = 0; i < n; i++) {
-        if (strcmp(argv[1], "-c") == 0)
-            codepoints[i] += 0x3042;
-        else
-            codepoints[i] -= 0x3042;
+        if (strcmp(argv[1], "-c") == 0) {
+
+            if (i < 10)
+                oneTimePad(&codepoints[i], key[i]);
+            else 
+                oneTimePad(&codepoints[i], aux[i - 10]);
+
+            codepoints[i] += (0x3000 + 0x61);
+        } else {
+            codepoints[i] -= (0x3000 + 0x61);
+            if (i < 10)
+                oneTimePad(&codepoints[i], key[i]);
+            else
+                oneTimePad(&codepoints[i], codepoints[i - 10]);
+        }
     }
 
     for (int i = 0; i < n; i++) {

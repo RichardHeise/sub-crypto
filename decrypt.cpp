@@ -55,7 +55,7 @@ string encryptPolyalphabetically(const string& message, const string& key)
   {
     char keyChar = key[i % key.length()];
     char messageChar = message[i];
-    unsigned char encryptedChar = ((messageChar ^ keyChar) % 233) + 32;
+    unsigned char encryptedChar = ((messageChar ^ keyChar) % 95) + 32;
     printf("%d\n", encryptedChar);
     encryptedMessage += encryptedChar;
   }
