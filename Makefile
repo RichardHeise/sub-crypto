@@ -1,19 +1,20 @@
-# Dante Eleutério dos Santos (GRR)
+# Dante Eleutério dos Santos (GRR20206686)
 # Richard Fernando Heise Ferreira (GRR20191053)
 
-CFLAGS  = -g
+CFLAGS  = -Wextra
 CC = gcc
 
 #-----------------------------------------------------------------------------#
-all : crypto 
+all : bingchiling
 
-rEncrypt: crypto
-	./crypto -c
+encrypt: bingchiling
+	./bingchiling -c
 
-rDecrypt: crypto
-	./crypto -d
+decrypt: bingchiling
+	./bingchiling -d
 
-crypto: crypto.o 
+bingchiling: bingchiling.o crypt.o
+
 
 #-----------------------------------------------------------------------------#
 
@@ -23,4 +24,4 @@ clean :
 #-----------------------------------------------------------------------------#
 
 purge:
-	$(RM) encrypt *.o
+	$(RM) bingchiling *.o

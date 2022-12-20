@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
-#include <time.h>
+// Autores:
+// Dante Eleutério dos Santos (GRR20206686)
+// Richard Fernando Heise Ferreira (GRR20191053)
+
+#include "crypt.h"
 
 typedef struct {
     char mask;    /* char data will be bitwise AND with this */
@@ -12,7 +12,7 @@ typedef struct {
     int bits_stored; /* the number of bits from the codepoint that fits in char */
 }utf_t;
 
-utf_t * utf[] = {
+utf_t* utf[] = {
     /*             mask        lead        beg      end       bits */
     [0] = &(utf_t){0b00111111, 0b10000000, 0,       0,        6    },
     [1] = &(utf_t){0b01111111, 0b00000000, 0000,    0177,     7    },
@@ -21,13 +21,6 @@ utf_t * utf[] = {
     [4] = &(utf_t){0b00000111, 0b11110000, 0200000, 04177777, 3    },
     &(utf_t){0},
 };
-
-/* All lengths are in bytes */
-int codepoint_len(const uint32_t cp); /* len of associated utf-8 char */
-int utf8_len(const char ch);          /* len of utf-8 encoded char */
-
-char *to_utf8(const uint32_t cp);
-uint32_t to_utf32(const char chr[4]);
 
 int codepoint_len(const uint32_t cp)
 {
@@ -94,7 +87,7 @@ uint32_t oneTimePad(uint32_t charTxt, uint32_t charKey) {
 }
 
 uint32_t* generateKey() {
-    uint32_t* key = malloc(sizeof(uint32_t)*8500);
+    uint32_t* key = malloc(sizeof(uint32_t)*MAX_ALLOC);
 
     unsigned char date[10];
     time_t t = time(NULL);
@@ -112,8 +105,8 @@ uint32_t* generateKey() {
 }
 
 uint32_t* readText(int* n) {
-    uint32_t* inputUTF32 = malloc(sizeof(uint32_t) * 8500);
-    unsigned char buffer[8500];
+    uint32_t* inputUTF32 = malloc(sizeof(uint32_t) * MAX_ALLOC);
+    unsigned char buffer[MAX_ALLOC];
     fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), stdin);
 
     unsigned char* in;
@@ -122,45 +115,4 @@ uint32_t* readText(int* n) {
     }
 
     return inputUTF32;
-}
-
-int main(int argc, char* argv[]) {
-    if (argc <= 1) {
-        printf("Usage:\n  encrypting: %s -c\n  decrypting: %s -d\n", argv[0], argv[0]);
-        return 1;
-    }
-
-    uint32_t* key = malloc(sizeof(uint32_t) * 8500);
-    uint32_t* inputUTF32 = malloc(sizeof(uint32_t) * 8500);
-    uint32_t* aux = malloc(sizeof(uint32_t) * 8500);
-
-    int inputSize = 0;
-    key = generateKey();
-    inputUTF32 = readText(&inputSize);
-
-    bcopy(inputUTF32, aux, inputSize*4);
-
-    for (int i = 0; i < inputSize; i++) {
-        if (strcmp(argv[1], "-c") == 0) {
-
-            if (i < 10)
-                inputUTF32[i] = oneTimePad(inputUTF32[i], key[i]);
-            else 
-                inputUTF32[i] = oneTimePad(inputUTF32[i], aux[i - 10]);
-
-            inputUTF32[i] += (0x3061);
-        } else {
-            inputUTF32[i] -= (0x3061);
-
-            if (i < 10)
-                inputUTF32[i] = oneTimePad(inputUTF32[i], key[i]);
-            else
-                inputUTF32[i] = oneTimePad(inputUTF32[i], inputUTF32[i - 10]);
-        }
-    }
-
-    for (int i = 0; i < inputSize; i++) {
-        printf("%s", to_utf8(inputUTF32[i]));
-    }
-    printf("\n");
 }
