@@ -2,20 +2,18 @@
 # Richard Fernando Heise Ferreira (GRR20191053)
 
 CFLAGS  = -g
-CC = g++ 
+CC = gcc
 
 #-----------------------------------------------------------------------------#
-all : encrypt decrypt
+all : crypto 
 
-rEncrypt: encrypt
-	./encrypt
+rEncrypt: crypto
+	./crypto -c
 
-rDecrypt: decrypt
-	./decrypt
+rDecrypt: crypto
+	./crypto -d
 
-encrypt: encrypt.o 
-
-decrypt: decrypt.o utils.o
+crypto: crypto.o 
 
 #-----------------------------------------------------------------------------#
 
@@ -25,4 +23,4 @@ clean :
 #-----------------------------------------------------------------------------#
 
 purge:
-	$(RM) encrypt decrypt *.o
+	$(RM) encrypt *.o

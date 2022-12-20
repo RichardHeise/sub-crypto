@@ -27,7 +27,7 @@ int codepoint_len(const uint32_t cp); /* len of associated utf-8 char */
 int utf8_len(const char ch);          /* len of utf-8 encoded char */
 
 char *to_utf8(const uint32_t cp);
-uint32_t to_cp(const char chr[4]);
+uint32_t to_utf32(const char chr[4]);
 
 int codepoint_len(const uint32_t cp)
 {
@@ -75,7 +75,7 @@ char *to_utf8(const uint32_t cp)
     return ret;
 }
 
-uint32_t to_cp(const char chr[4])
+uint32_t to_utf32(const char chr[4])
 {
     int bytes = utf8_len(*chr);
     int shift = utf[0]->bits_stored * (bytes - 1);
@@ -89,17 +89,12 @@ uint32_t to_cp(const char chr[4])
     return codep;
 }
 
-void oneTimePad(uint32_t *charTxt, uint32_t charKey) {
-    *charTxt = (*charTxt ^ charKey);
+uint32_t oneTimePad(uint32_t charTxt, uint32_t charKey) {
+    return (charTxt ^ charKey);
 }
 
-int main(int argc, char* argv[]) {
-    if (argc <= 1) {
-        printf("Usage:\n  encrypting: %s -c\n  decrypting: %s -d\n", argv[0], argv[0]);
-        return 1;
-    }
-
-    uint32_t key[8500];
+uint32_t* generateKey() {
+    uint32_t* key = malloc(sizeof(uint32_t)*8500);
 
     unsigned char date[10];
     time_t t = time(NULL);
@@ -110,41 +105,62 @@ int main(int argc, char* argv[]) {
     unsigned char* in;
     int x = 0;
     for (in = date; *in != '\0'; in += utf8_len(*in)) {
-        key[x++] = to_cp(in);
+        key[x++] = to_utf32(in);
     }
 
+    return key;
+}
+
+uint32_t* readText(int* n) {
+    uint32_t* inputUTF32 = malloc(sizeof(uint32_t) * 8500);
     unsigned char buffer[8500];
-    uint32_t codepoints[8500];
     fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), stdin);
 
-    int n = 0;
+    unsigned char* in;
     for (in = buffer; *in != '\n'; in += utf8_len(*in)) {
-        codepoints[n++] = to_cp(in);
+        inputUTF32[(*n)++] = to_utf32(in);
     }
 
-    uint32_t aux[8500];
-    bcopy(codepoints, aux, n*4);
+    return inputUTF32;
+}
 
-    for (int i = 0; i < n; i++) {
+int main(int argc, char* argv[]) {
+    if (argc <= 1) {
+        printf("Usage:\n  encrypting: %s -c\n  decrypting: %s -d\n", argv[0], argv[0]);
+        return 1;
+    }
+
+    uint32_t* key = malloc(sizeof(uint32_t) * 8500);
+    uint32_t* inputUTF32 = malloc(sizeof(uint32_t) * 8500);
+    uint32_t* aux = malloc(sizeof(uint32_t) * 8500);
+
+    int inputSize = 0;
+    key = generateKey();
+    inputUTF32 = readText(&inputSize);
+
+    bcopy(inputUTF32, aux, inputSize*4);
+
+    for (int i = 0; i < inputSize; i++) {
         if (strcmp(argv[1], "-c") == 0) {
 
             if (i < 10)
-                oneTimePad(&codepoints[i], key[i]);
+                inputUTF32[i] = oneTimePad(inputUTF32[i], key[i]);
             else 
-                oneTimePad(&codepoints[i], aux[i - 10]);
+                inputUTF32[i] = oneTimePad(inputUTF32[i], aux[i - 10]);
 
-            codepoints[i] += (0x3000 + 0x61);
+            inputUTF32[i] += (0x3061);
         } else {
-            codepoints[i] -= (0x3000 + 0x61);
+            inputUTF32[i] -= (0x3061);
+
             if (i < 10)
-                oneTimePad(&codepoints[i], key[i]);
+                inputUTF32[i] = oneTimePad(inputUTF32[i], key[i]);
             else
-                oneTimePad(&codepoints[i], codepoints[i - 10]);
+                inputUTF32[i] = oneTimePad(inputUTF32[i], inputUTF32[i - 10]);
         }
     }
 
-    for (int i = 0; i < n; i++) {
-        printf("%s", to_utf8(codepoints[i]));
+    for (int i = 0; i < inputSize; i++) {
+        printf("%s", to_utf8(inputUTF32[i]));
     }
     printf("\n");
 }
