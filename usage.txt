@@ -1,0 +1,21 @@
+1. To compile:
+
+make
+
+2. To run encryptor
+
+make encrypt 
+
+3. To run decryptor 
+
+make decrypt 
+
+4. To clean .o
+
+make clean 
+
+5. To purge all and reset to original code
+
+make purge
+
+Have fun :D

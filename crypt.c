@@ -2,6 +2,8 @@
 // Dante Eleutério dos Santos (GRR20206686)
 // Richard Fernando Heise Ferreira (GRR20191053)
 
+// THIS CODE IS *HEAVILY* INSPIRED BY https://rosettacode.org/wiki/UTF-8_encode_and_decode#C
+
 #include "crypt.h"
 
 typedef struct {
@@ -22,11 +24,11 @@ utf_t* utf[] = {
     &(utf_t){0},
 };
 
-int codepoint_len(const uint32_t cp)
-{
+int utf32_len(const uint32_t utf32_char) {
+
     int len = 0;
-    for(utf_t **u = utf; *u; ++u) {
-        if((cp >= (*u)->beg) && (cp <= (*u)->end)) {
+    for(utf_t **char_p = utf; *char_p; ++char_p) {
+        if((utf32_char >= (*char_p)->beg) && (utf32_char <= (*char_p)->end)) {
             break;
         }
         ++len;
@@ -37,11 +39,11 @@ int codepoint_len(const uint32_t cp)
     return len;
 }
 
-int utf8_len(const char ch)
-{
+int utf8_len(const char utf8_char) {
+
     int len = 0;
-    for(utf_t **u = utf; *u; ++u) {
-        if((ch & ~(*u)->mask) == (*u)->lead) {
+    for(utf_t **char_p = utf; *char_p; ++char_p) {
+        if((utf8_char & ~(*char_p)->mask) == (*char_p)->lead) {
             break;
         }
         ++len;
@@ -52,24 +54,26 @@ int utf8_len(const char ch)
     return len;
 }
 
-char *to_utf8(const uint32_t cp)
-{
+
+char *to_utf8(const uint32_t utf32_char) {
+
     static char ret[5];
-    const int bytes = codepoint_len(cp);
+    const int bytes = utf32_len(utf32_char);
 
     int shift = utf[0]->bits_stored * (bytes - 1);
-    ret[0] = (cp >> shift & utf[bytes]->mask) | utf[bytes]->lead;
+    ret[0] = (utf32_char >> shift & utf[bytes]->mask) | utf[bytes]->lead;
     shift -= utf[0]->bits_stored;
     for(int i = 1; i < bytes; ++i) {
-        ret[i] = (cp >> shift & utf[0]->mask) | utf[0]->lead;
+        ret[i] = (utf32_char >> shift & utf[0]->mask) | utf[0]->lead;
         shift -= utf[0]->bits_stored;
     }
     ret[bytes] = '\0';
     return ret;
 }
 
-uint32_t to_utf32(const char chr[4])
-{
+
+uint32_t to_utf32(const char chr[4]) {
+
     int bytes = utf8_len(*chr);
     int shift = utf[0]->bits_stored * (bytes - 1);
     uint32_t codep = (*chr++ & utf[bytes]->mask) << shift;
@@ -81,6 +85,7 @@ uint32_t to_utf32(const char chr[4])
 
     return codep;
 }
+
 
 uint32_t oneTimePad(uint32_t charTxt, uint32_t charKey) {
     return (charTxt ^ charKey);
@@ -103,6 +108,7 @@ uint32_t* generateKey() {
 
     return key;
 }
+
 
 uint32_t* readText(int* n) {
     uint32_t* inputUTF32 = malloc(sizeof(uint32_t) * MAX_ALLOC);
