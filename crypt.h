@@ -11,7 +11,7 @@
 #include <inttypes.h>
 #include <time.h>
 
-#define MAX_ALLOC 5000
+#define MAX_ALLOC 500000
 
 /* All lengths are in bytes */
 
