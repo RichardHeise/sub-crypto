@@ -18,4 +18,12 @@ make clean
 
 make purge
 
+One can try the livro.txt file by running the following:
+
+./bingchiling -c < livro.txt > saida.txt 
+./bingchiling -d < saida.txt > texto.txt 
+
+This way the whole A Christmas Carrol book will be encrypted and decrypted. Just notice it HAS to be all one string (no '\n')
+and it HAS to have a '\n' at the end of the file.
+
 Have fun :D
